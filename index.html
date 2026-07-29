@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StoreFlow | Tienda moderna</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Tienda digital</p>
+        <h1>StoreFlow</h1>
+        <p class="topbar__subtitle">Descubre productos, filtra rápido y compra con total comodidad.</p>
+      </div>
+      <button class="topbar__badge topbar__badge--interactive" id="cartToggleBtn" type="button" aria-controls="cartDrawer" aria-expanded="false" aria-live="polite">
+        <span>Carrito</span>
+        <strong id="cartCountBadge">0</strong>
+      </button>
+    </header>
+
+    <main class="app-shell">
+      <section class="products-panel" aria-labelledby="products-title">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Catálogo</p>
+            <h2 id="products-title">Productos destacados</h2>
+          </div>
+          <p class="panel-header__hint">Usa los filtros para encontrar exactamente lo que necesitas.</p>
+        </div>
+
+        <div class="toolbar" role="search">
+          <label class="toolbar__field">
+            <span>Buscar</span>
+            <input id="searchInput" type="text" placeholder="Buscar por nombre, categoría o descripción" />
+          </label>
+
+          <label class="toolbar__field">
+            <span>Categoría</span>
+            <select id="categoryFilter">
+              <option value="all">Todas</option>
+            </select>
+          </label>
+
+          <label class="toolbar__field">
+            <span>Ordenar por</span>
+            <select id="sortSelect">
+              <option value="featured">Destacados</option>
+              <option value="price-asc">Precio: menor a mayor</option>
+              <option value="price-desc">Precio: mayor a menor</option>
+              <option value="name-asc">Nombre A-Z</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="productsGrid" class="products-grid" aria-live="polite"></div>
+        <p id="emptyState" class="empty-state hidden">No se encontraron productos con esos criterios.</p>
+      </section>
+
+    </main>
+
+    <div id="cartDrawer" class="cart-drawer" aria-hidden="true">
+      <div class="cart-drawer__backdrop" data-action="close-cart"></div>
+      <aside class="cart-panel cart-panel--drawer" aria-labelledby="cart-title">
+        <button class="drawer__close" id="drawerCloseBtn" type="button" aria-label="Cerrar carrito">×</button>
+        <div class="cart-header">
+          <div>
+            <p class="eyebrow">Resumen</p>
+            <h2 id="cart-title">Tu carrito</h2>
+          </div>
+          <span id="cartCount" class="pill">0 productos</span>
+        </div>
+
+        <div id="cartItems" class="cart-items"></div>
+
+        <div class="cart-summary">
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <strong id="subtotal">$0.00</strong>
+          </div>
+          <div class="summary-row">
+            <span>Envío</span>
+            <strong id="shipping">$0.00</strong>
+          </div>
+          <div class="summary-row summary-row--total">
+            <span>Total</span>
+            <strong id="total">$0.00</strong>
+          </div>
+          <button id="checkoutBtn" class="checkout-btn" type="button">Finalizar compra</button>
+          <button id="clearCartBtn" class="secondary-btn" type="button">Vaciar carrito</button>
+          <button id="continueShoppingBtn" class="secondary-btn" type="button">Seguir comprando</button>
+        </div>
+      </aside>
+    </div>
+
+    <div id="checkoutModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+      <div class="modal__backdrop" data-action="close-modal"></div>
+      <div class="modal__content">
+        <button class="modal__close" id="closeModalBtn" type="button" aria-label="Cerrar">×</button>
+        <p class="eyebrow">Pago</p>
+        <h3 id="checkoutTitle">Completa tu pedido</h3>
+        <p class="modal__intro">Ingresa tus datos para confirmar la compra y recibir la información del envío.</p>
+
+        <form id="checkoutForm" class="checkout-form">
+          <label class="form-group">
+            <span>Nombre completo</span>
+            <input name="name" type="text" required />
+          </label>
+          <label class="form-group">
+            <span>Correo electrónico</span>
+            <input name="email" type="email" required />
+          </label>
+          <label class="form-group">
+            <span>Dirección de envío</span>
+            <input name="address" type="text" required />
+          </label>
+          <label class="form-group">
+            <span>Notas para el pedido</span>
+            <textarea name="notes" rows="3" placeholder="Ej. Entregar en el portón principal"></textarea>
+          </label>
+
+          <div class="payment-section">
+            <h4>Método de pago</h4>
+            <div class="payment-options">
+              <label class="payment-option">
+                <input type="radio" name="paymentMethod" value="tarjeta" checked />
+                <span>Tarjeta</span>
+              </label>
+              <label class="payment-option">
+                <input type="radio" name="paymentMethod" value="contraentrega" />
+                <span>Contraentrega</span>
+              </label>
+            </div>
+          </div>
+
+          <div id="cardNumberField" class="form-group">
+            <span>Número de tarjeta</span>
+            <input id="cardNumberInput" name="cardNumber" type="text" inputmode="numeric" maxlength="19" placeholder="1234 5678 9012 3456" />
+          </div>
+
+          <button class="checkout-submit" type="submit">Confirmar compra</button>
+        </form>
+
+        <div id="checkoutSuccess" class="checkout-success hidden">
+          <h4>¡Compra confirmada!</h4>
+          <p>Gracias por tu compra. En breve recibirás un correo con los detalles del pedido.</p>
+          <div id="orderSummary" class="order-summary"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,6 +1,8 @@
-# StoreFlow
+#Proyecto hecho por: Johan Rueda, Miguel 
 
-StoreFlow es una aplicación web moderna para explorar productos de una API pública, aplicar filtros y ordenar el catálogo, y gestionar un carrito de compras con persistencia local mediante localStorage.
+# FakesStore
+
+FakesStore es una aplicación web moderna para explorar productos de una API pública, aplicar filtros y ordenar el catálogo, y gestionar un carrito de compras con persistencia local mediante localStorage.
 
 ## Características
 

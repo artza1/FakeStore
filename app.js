@@ -1,5 +1,6 @@
 const PRODUCTS_API_URL = 'https://fakestoreapi.com/products';
 const STORAGE_KEY = 'storeflow-cart';
+const HISTORY_STORAGE_KEY = 'storeflow-purchase-history';
 
 const state = {
   products: [],
@@ -107,12 +108,16 @@ function init() {
   elements.shipping = document.getElementById('shipping');
   elements.total = document.getElementById('total');
   elements.checkoutBtn = document.getElementById('checkoutBtn');
+  elements.viewHistoryBtn = document.getElementById('viewHistoryBtn');
   elements.cartDrawer = document.getElementById('cartDrawer');
   elements.cartToggleBtn = document.getElementById('cartToggleBtn');
   elements.drawerCloseBtn = document.getElementById('drawerCloseBtn');
   elements.continueShoppingBtn = document.getElementById('continueShoppingBtn');
   elements.clearCartBtn = document.getElementById('clearCartBtn');
   elements.checkoutModal = document.getElementById('checkoutModal');
+  elements.historyModal = document.getElementById('historyModal');
+  elements.historyCloseBtn = document.getElementById('historyCloseBtn');
+  elements.historyList = document.getElementById('historyList');
   elements.closeModalBtn = document.getElementById('closeModalBtn');
   elements.checkoutForm = document.getElementById('checkoutForm');
   elements.checkoutSuccess = document.getElementById('checkoutSuccess');
@@ -138,8 +143,11 @@ function setupEvents() {
   elements.clearCartBtn.addEventListener('click', clearCart);
   elements.cartDrawer.addEventListener('click', handleCartDrawerClick);
   elements.checkoutBtn.addEventListener('click', openCheckout);
+  elements.viewHistoryBtn.addEventListener('click', openHistory);
   elements.checkoutModal.addEventListener('click', handleModalClick);
+  elements.historyModal.addEventListener('click', handleModalClick);
   elements.closeModalBtn.addEventListener('click', closeCheckout);
+  elements.historyCloseBtn.addEventListener('click', closeHistory);
   elements.checkoutForm.addEventListener('submit', handleCheckoutSubmit);
   elements.paymentMethodInputs.forEach((input) => input.addEventListener('change', togglePaymentFields));
   elements.cardNumberInput.addEventListener('input', formatCardNumber);
@@ -514,6 +522,9 @@ function handleCheckoutSubmit(event) {
     </div>
   `;
 
+  const historyEntry = createHistoryEntry(items, subtotal, shipping, total, paymentLabel);
+  addCheckoutToHistory(historyEntry);
+
   state.cart = {};
   saveCart();
   renderCart();
@@ -537,6 +548,109 @@ function loadCartFromStorage() {
   } catch (error) {
     console.error('No fue posible recuperar el carrito guardado.', error);
   }
+}
+
+function getPurchaseHistory() {
+  try {
+    const stored = localStorage.getItem(HISTORY_STORAGE_KEY);
+    if (!stored) return [];
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error('No fue posible leer el historial de compras.', error);
+    return [];
+  }
+}
+
+function addCheckoutToHistory(entry) {
+  const history = getPurchaseHistory();
+  history.unshift(entry);
+  localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
+}
+
+function createHistoryEntry(items, subtotal, shipping, total, paymentLabel) {
+  return {
+    date: new Date().toISOString(),
+    items: items.map((item) => ({
+      id: item.product.id,
+      title: item.product.title,
+      unitPrice: item.product.price,
+      quantity: item.quantity,
+      totalPrice: item.product.price * item.quantity,
+    })),
+    subtotal,
+    shipping,
+    total,
+    paymentMethod: paymentLabel,
+  };
+}
+
+function openHistory() {
+  renderHistory();
+  elements.historyModal.classList.remove('hidden');
+  elements.historyModal.classList.add('is-open');
+  document.body.classList.add('modal-open');
+}
+
+function closeHistory() {
+  elements.historyModal.classList.add('hidden');
+  elements.historyModal.classList.remove('is-open');
+  document.body.classList.remove('modal-open');
+}
+
+function renderHistory() {
+  const history = getPurchaseHistory();
+
+  if (!history.length) {
+    elements.historyList.innerHTML = '<p class="empty-state">Aún no tienes compras guardadas. Finaliza al menos una compra para ver tu historial.</p>';
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+
+  history.forEach((entry) => {
+    const card = document.createElement('article');
+    card.className = 'history-card';
+    const date = new Date(entry.date).toLocaleString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const itemsMarkup = entry.items
+      .map(
+        (item) => `
+          <li>
+            <span>${item.quantity} × ${item.title}</span>
+            <strong>$${item.totalPrice.toFixed(2)}</strong>
+          </li>`
+      )
+      .join('');
+
+    card.innerHTML = `
+      <div class="history-card__header">
+        <span>${date}</span>
+        <strong>${entry.paymentMethod}</strong>
+      </div>
+      <ul class="history-card__items">${itemsMarkup}</ul>
+      <div class="history-card__summary">
+        <span>Subtotal</span><strong>$${entry.subtotal.toFixed(2)}</strong>
+      </div>
+      <div class="history-card__summary">
+        <span>Envío</span><strong>$${entry.shipping.toFixed(2)}</strong>
+      </div>
+      <div class="history-card__summary history-card__summary--total">
+        <span>Total</span><strong>$${entry.total.toFixed(2)}</strong>
+      </div>
+    `;
+
+    fragment.appendChild(card);
+  });
+
+  elements.historyList.innerHTML = '';
+  elements.historyList.appendChild(fragment);
 }
 
 function translateProductText(product) {

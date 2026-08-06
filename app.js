@@ -2,6 +2,7 @@ const PRODUCTS_API_URL = 'https://fakestoreapi.com/products';
 const STORAGE_KEY = 'storeflow-cart';
 const HISTORY_STORAGE_KEY = 'storeflow-purchase-history';
 
+//rr
 const state = {
   products: [],
   filteredProducts: [],

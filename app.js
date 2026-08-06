@@ -1,11 +1,13 @@
 const PRODUCTS_API_URL = 'https://fakestoreapi.com/products';
 const STORAGE_KEY = 'storeflow-cart';
 const HISTORY_STORAGE_KEY = 'storeflow-purchase-history';
+const FAVORITES_STORAGE_KEY = 'storeflow-favorites';
 
 const state = {
   products: [],
   filteredProducts: [],
   cart: {},
+  favorites: [],
 };
 
 const elements = {};
@@ -129,6 +131,8 @@ function init() {
   loadCartFromStorage();
   setupEvents();
   renderCart();
+  loadFavoritesFromStorage();
+  renderFavorites();
   loadProducts();
 }
 
@@ -238,6 +242,7 @@ function renderProducts() {
 
   const fragment = document.createDocumentFragment();
   state.filteredProducts.forEach((product) => {
+    const isFavorite = state.favorites.includes(product.id);
     const card = document.createElement('article');
     card.className = 'product-card';
     card.innerHTML = `
@@ -250,10 +255,14 @@ function renderProducts() {
       <div class="product-card__footer">
         <span class="product-card__price">$${product.price.toFixed(2)}</span>
         <button class="add-btn" type="button" data-action="add" data-id="${product.id}">Agregar</button>
+        <button class="favorite-btn ${isFavorite ? 'is-favorite' : ''}" type="button" data-action="favorite" data-id="${product.id}">
+          ${isFavorite ? '★' : '☆'}
+        </button>
       </div>
     `;
 
     card.querySelector('.add-btn').addEventListener('click', () => addToCart(product));
+    card.querySelector('.favorite-btn').addEventListener('click', () => toggleFavorite(product.id));
     fragment.appendChild(card);
   });
 
@@ -694,4 +703,71 @@ function formatCategory(category) {
   }
 
   return category.charAt(0).toUpperCase() + category.slice(1);
+}
+
+function saveFavorites() {
+  localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(state.favorites));
+}
+
+function loadFavoritesFromStorage() {
+  try {
+    const stored = localStorage.getItem(FAVORITES_STORAGE_KEY);
+    if (stored) {
+      state.favorites = JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error('No fue posible recuperar los favoritos guardados.', error);
+  }
+}
+
+function toggleFavorite(productId) {
+  const index = state.favorites.indexOf(productId);
+
+  if (index === -1) {
+    state.favorites.push(productId);
+  } else {
+    state.favorites.splice(index, 1);
+  }
+
+  saveFavorites();
+  renderProducts();
+  renderFavorites();
+}
+
+function renderFavorites() {
+  const favoritesSection = document.getElementById('favoritesSection');
+  favoritesSection.innerHTML = '';
+
+  if (!state.favorites.length) {
+    favoritesSection.innerHTML = '<p class="empty-state">No tienes productos favoritos.</p>';
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  state.favorites.forEach((id) => {
+    const product = state.products.find((p) => p.id === id);
+    if (!product) return;
+
+    const card = document.createElement('article');
+    card.className = 'product-card';
+    card.innerHTML = `
+      <div>
+        <img class="product-card__image" src="${product.image}" alt="${product.title}" />
+        <p class="product-card__category">${formatCategory(product.category)}</p>
+        <h3>${product.title}</h3>
+        <p class="product-card__description">${product.description}</p>
+      </div>
+      <div class="product-card__footer">
+        <span class="product-card__price">$${product.price.toFixed(2)}</span>
+        <button class="favorite-btn is-favorite" type="button" data-action="favorite" data-id="${product.id}">
+          ★
+        </button>
+      </div>
+    `;
+
+    card.querySelector('.favorite-btn').addEventListener('click', () => toggleFavorite(product.id));
+    fragment.appendChild(card);
+  });
+
+  favoritesSection.appendChild(fragment);
 }

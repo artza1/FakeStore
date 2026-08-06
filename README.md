@@ -2,7 +2,7 @@
 
 # FakesStore
 
-FakesStore es una aplicación web moderna para explorar productos de una API pública, aplicar filtros y ordenar el catálogo, y gestionar un carrito de compras con persistencia local mediante localStorage.
+FakesStore es una aplicación web pirata para explorar productos de una API pública, aplicar filtros y ordenar el catálogo, y gestionar un carrito de compras con persistencia local mediante localStorage.
 
 ## Características
 
